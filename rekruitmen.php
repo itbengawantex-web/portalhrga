@@ -68,11 +68,38 @@ if (!$result) {
             <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
               <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                 <h6 class="dark:text-white">Daftar Rekrutmen</h6>
+                <form method="GET" class="d-flex gap-2 align-items-center mb-0">
+                      <a href="tambahlog.php" class="btn btn-primary mr-2">Tambah Log </a>
+
+                      <input type="text" name="nama" class="form-control form-control-sm mr-2" placeholder="Kode Mesin" style="width: 150px;" value="Nama" />
+
+                      <select name="status" class="form-control form-control-sm mr-2" style="width: 150px;">
+                          <option value="">-- Pilih Blok --</option>
+                          <option value="DITERIMA">-- DITERIMA --</option>
+                          <option value="PENDING">-- PENDING --</option>
+                          <option value="DITOLAK">-- DITOLAK --</option>
+
+                      </select>
+
+                      <!-- 🔽 Tambahan Filter NIK Mekanik -->
+                      <input type="text" name="nik_mekanik" class="form-control form-control-sm mr-2" placeholder="NIK Mekanik" style="width: 150px;" value="<?= isset($_GET['nik_mekanik']) ? $_GET['nik_mekanik'] : '' ?>" />
+
+                      <input type="date" name="tanggal_mulai" class="form-control form-control-sm mr-2" style="width: 140px;" value="<?= isset($_GET['tanggal_mulai']) ? $_GET['tanggal_mulai'] : '' ?>" />
+
+                      <input type="date" name="tanggal_akhir" class="form-control form-control-sm mr-2" style="width: 140px;" value="<?= isset($_GET['tanggal_akhir']) ? $_GET['tanggal_akhir'] : '' ?>" />
+
+                      <input type="hidden" name="halaman" value="<?= $_GET['halaman'] ?? 1 ?>">
+
+                      <button type="submit" class="btn-icon edit">Tampilkan</button>
+                  </form>
+
               </div>
               <div class="flex-auto px-0 pt-0 pb-2">
+                
                 <div class="p-0 overflow-x-auto">
                     
                   <div class="table-box">
+                    
                     <?php if (isset($_SESSION['status'])): ?>
                     <div class="alert alert-<?= $_SESSION['status_type'] ?? 'success'; ?> alert-dismissible fade show" role="alert">
                     <strong>Success!</strong> <?= $_SESSION['status']; ?>
