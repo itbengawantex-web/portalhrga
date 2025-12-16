@@ -1,0 +1,245 @@
+<?php
+session_start();
+
+$current_page = basename($_SERVER['PHP_SELF']);
+if (!isset($_SESSION['login'])) {
+    header("Location: login.php");
+    exit();
+}
+include('includes/header.php');
+include('includes/sidebar.php');
+include('config/dbcon.php'); 
+
+$perPage = 20; // jumlah data per halaman
+$halaman = isset($_GET['halaman']) ? (int)$_GET['halaman'] : 1;
+$halaman = ($halaman < 1) ? 1 : $halaman;
+
+$offset = ($halaman - 1) * $perPage;
+
+// hitung total data
+$totalQuery = mysqli_query($con, "SELECT COUNT(*) AS total FROM rekrutmen");
+$totalData = mysqli_fetch_assoc($totalQuery)['total'];
+
+$pages = ceil($totalData / $perPage);
+
+// query utama + limit
+$query = "SELECT * FROM rekrutmen 
+          ORDER BY tanggal DESC 
+          LIMIT $perPage OFFSET $offset";
+$result = mysqli_query($con, $query);
+
+if (!$result) {
+    die("Query Error: " . mysqli_error($con));
+}
+
+?>
+<style>
+/* Tombol KONFIRMASI */
+.swal2-confirm {
+  background-color: #dc3545 !important; /* merah */
+  color: #fff !important;
+}
+
+/* Tombol BATAL */
+.swal2-cancel {
+  background-color: #6c757d !important; /* abu */
+  color: #fff !important;
+}
+
+/* Supaya hover tidak transparan */
+.swal2-confirm:hover,
+.swal2-cancel:hover {
+  opacity: 0.9;
+}
+</style>
+
+<main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
+      <!-- Navbar -->
+      <?php
+      $page_title = "Recruitment";
+      include('includes/topbar.php')
+      ?>
+
+      <div class="w-full px-6 py-6 mx-auto">
+        <!-- table 1 -->
+
+        <div class="flex flex-wrap -mx-3">
+          <div class="flex-none w-full max-w-full px-3">
+            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
+              <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                <h6 class="dark:text-white">Daftar Rekrutmen</h6>
+              </div>
+              <div class="flex-auto px-0 pt-0 pb-2">
+                <div class="p-0 overflow-x-auto">
+                    
+                  <div class="table-box">
+                    <?php if (isset($_SESSION['status'])): ?>
+                    <div class="alert alert-<?= $_SESSION['status_type'] ?? 'success'; ?> alert-dismissible fade show" role="alert">
+                    <strong>Success!</strong> <?= $_SESSION['status']; ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                    <?php
+                    unset($_SESSION['status'], $_SESSION['status_type']);
+                    endif;
+                    ?>
+
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                            <th class="center">No</th>
+                            <th class="center">Tanggal</th>
+                            <th>Nama</th>
+                            <th>Posisi</th>
+                            <th class="center">Psikotes</th>
+                            <th class="center">Interview HR</th>
+                            <th class="center">Interview User</th>
+                            <th class="center">Status</th>
+                            <th class="center">Aksi</th>
+                        </tr>
+                            </thead>
+
+                    <tbody>
+                    <?php 
+                   $no = $offset + 1;
+                    while ($row = mysqli_fetch_assoc($result)) { 
+                    ?>
+                        <tr>
+                        <td class="center"><?= $no++; ?></td>
+                        <td class="center"><?= date('d-m-Y', strtotime($row['tanggal'])); ?></td>
+                        <td><?= $row['nama_rek']; ?></td>
+                        <td><?= $row['posisi']; ?></td>
+                        <td class="center"><?= $row['psikotes']; ?></td>
+                        <td class="center"><?= $row['interview_hr']; ?></td>
+                        <td class="center"><?= $row['interview_user']; ?></td>
+                        <td class="center">
+                            <?php
+                            $status = strtolower($row['status']);
+
+                            if ($status == 'diterima') {
+                                echo '<span class="status-label status-diterima">Diterima</span>';
+                            } elseif ($status == 'ditolak') {
+                                echo '<span class="status-label status-ditolak">Ditolak</span>';
+                            } else {
+                                echo '<span class="status-label status-pending">Pending</span>';
+                            }
+                            ?>
+                            </td>
+                            <td class="center aksi-btn">
+                                <a href="edit_rekrutmen.php?id=<?= $row['id']; ?>" class="btn-icon edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button 
+                                class="btn-icon delete btn-delete"
+                                data-url="rekruitmen_hapus.php?rek_no=<?= $row['rek_no']; ?>"
+                                >
+                                <i class="fas fa-trash-alt"></i>
+                                </button>
+
+
+                            </td>
+                    </tr>
+                    <?php } ?>
+                    </tbody>
+                        </table>
+                        <?php if ($pages > 1) { ?>
+                         <!-- Navigasi pagination -->
+                            <div class="card-footer clearfix">
+                            <ul class="pagination pagination-sm m-0 float-right">
+                                <?php
+                                $limit = 5; // jumlah nomor halaman yang ditampilkan
+                                $start = max(1, $halaman - floor($limit / 2));
+                                $end = min($pages, $start + $limit - 1);
+
+                                // Adjust kalau posisi di awal/akhir
+                                if ($end - $start + 1 < $limit) {
+                                    $start = max(1, $end - $limit + 1);
+                                }
+
+                                // Tombol Prev
+                                if ($halaman > 1) {
+                                    echo '<li class="page-item"><a class="page-link" href="?halaman=' . ($halaman - 1) . '">&laquo;</a></li>';
+                                } else {
+                                    echo '<li class="page-item disabled"><span class="page-link">&laquo;</span></li>';
+                                }
+
+                                // Tampilkan halaman pertama + ellipsis
+                                if ($start > 1) {
+                                    echo '<li class="page-item"><a class="page-link" href="?halaman=1">1</a></li>';
+                                    if ($start > 2) {
+                                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                    }
+                                }
+
+                                // Halaman tengah
+                                for ($i = $start; $i <= $end; $i++) {
+                                    $active = ($i == $halaman) ? 'active' : '';
+                                    echo '<li class="page-item ' . $active . '"><a class="page-link" href="?halaman=' . $i . '">' . $i . '</a></li>';
+                                }
+
+                                // Tampilkan halaman terakhir + ellipsis
+                                if ($end < $pages) {
+                                    if ($end < $pages - 1) {
+                                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                    }
+                                    echo '<li class="page-item"><a class="page-link" href="?halaman=' . $pages . '">' . $pages . '</a></li>';
+                                }
+
+                                // Tombol Next
+                                if ($halaman < $pages) {
+                                    echo '<li class="page-item"><a class="page-link" href="?halaman=' . ($halaman + 1) . '">&raquo;</a></li>';
+                                } else {
+                                    echo '<li class="page-item disabled"><span class="page-link">&raquo;</span></li>';
+                                }
+                                ?>
+                            </ul>
+                        </div>
+                        <?php } ?>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        
+      </div>
+    </main>
+
+<script>
+  setTimeout(() => {
+    $('.alert').alert('close');
+  }, 4000);
+
+$('.btn-delete').on('click', function (e) {
+    e.preventDefault();
+
+    let url = $(this).data('url');
+
+    Swal.fire({
+        title: 'Yakin ingin menghapus?',
+        text: 'Data yang dihapus tidak bisa dikembalikan!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',      // MERAH
+        cancelButtonColor: '#6c757d',    // ABU
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+});
+</script>
+
+
+
+
+
+    <?php
+    include('includes/footer.php');
+    ?>
+    
