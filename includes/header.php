@@ -41,9 +41,11 @@
    main {
       padding-bottom: 0px; /* tambahkan jarak bawah */
    }
-
+.bg-blue-gradient {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
 
 </style>
 
-  <body class="m-0 font-sans text-base antialiased font-normal dark:bg-slate-900 leading-default bg-gray-50 text-slate-500">
-    <div class="absolute w-full bg-blue-500 dark:hidden min-h-75"></div>
+  <body class="m-0 font-sans text-base antialiased font-normal dark:bg-blue-gradient leading-default bg-gray-50 text-slate-500">
+    <div class="absolute w-full bg-blue-gradient dark:hidden min-h-75"></div>

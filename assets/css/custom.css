@@ -289,3 +289,59 @@
 .swal2-styled {
   background-color: transparent !important;
 }
+
+/* Tombol KONFIRMASI */
+.swal2-confirm {
+  background-color: #dc3545 !important; /* merah */
+  color: #fff !important;
+}
+
+/* Tombol BATAL */
+.swal2-cancel {
+  background-color: #6c757d !important; /* abu */
+  color: #fff !important;
+}
+
+/* Supaya hover tidak transparan */
+.swal2-confirm:hover,
+.swal2-cancel:hover {
+  opacity: 0.9;
+}
+
+.bg-green {
+  background-color: #28a745;
+  color: #fff;
+}
+.bg-purple-gradient {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+}
+.topbar-purple {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+.btn-blue-gradient {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-blue-gradient:hover {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.4);
+}
+.bg-blue-gradient {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+.btn-pink-gradient {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}

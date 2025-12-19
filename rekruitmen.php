@@ -15,17 +15,54 @@ $halaman = isset($_GET['halaman']) ? (int)$_GET['halaman'] : 1;
 $halaman = ($halaman < 1) ? 1 : $halaman;
 
 $offset = ($halaman - 1) * $perPage;
+$nama          = $_GET['nama'] ?? '';
+$tanggal_mulai = $_GET['tanggal_mulai'] ?? '';
+$tanggal_akhir = $_GET['tanggal_akhir'] ?? '';
+$posisi        = $_GET['posisi'] ?? '';
+$status        = $_GET['status'] ?? '';
 
-// hitung total data
-$totalQuery = mysqli_query($con, "SELECT COUNT(*) AS total FROM rekrutmen");
+$where = [];
+
+// filter tanggal
+if ($tanggal_mulai != '' && $tanggal_akhir != '') {
+    $where[] = "tanggal BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'";
+} elseif ($tanggal_mulai != '') {
+    $where[] = "tanggal >= '$tanggal_mulai'";
+} elseif ($tanggal_akhir != '') {
+    $where[] = "tanggal <= '$tanggal_akhir'";
+}
+
+// filter nama (INI FIX)
+if ($nama != '') {
+    $where[] = "nama_rek LIKE '%$nama%'";
+}
+
+// filter posisi
+if ($posisi != '') {
+    $where[] = "posisi LIKE '%$posisi%'";
+}
+
+// filter status
+if ($status != '') {
+    $where[] = "status = '$status'";
+}
+
+$whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+$totalQuery = mysqli_query(
+    $con,
+    "SELECT COUNT(*) AS total FROM rekrutmen $whereSQL"
+);
+
 $totalData = mysqli_fetch_assoc($totalQuery)['total'];
-
 $pages = ceil($totalData / $perPage);
 
-// query utama + limit
-$query = "SELECT * FROM rekrutmen 
-          ORDER BY tanggal DESC 
+
+$query = "SELECT * FROM rekrutmen
+          $whereSQL
+          ORDER BY tanggal DESC
           LIMIT $perPage OFFSET $offset";
+
 $result = mysqli_query($con, $query);
 
 if (!$result) {
@@ -34,23 +71,7 @@ if (!$result) {
 
 ?>
 <style>
-/* Tombol KONFIRMASI */
-.swal2-confirm {
-  background-color: #dc3545 !important; /* merah */
-  color: #fff !important;
-}
 
-/* Tombol BATAL */
-.swal2-cancel {
-  background-color: #6c757d !important; /* abu */
-  color: #fff !important;
-}
-
-/* Supaya hover tidak transparan */
-.swal2-confirm:hover,
-.swal2-cancel:hover {
-  opacity: 0.9;
-}
 </style>
 
 <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
@@ -68,31 +89,38 @@ if (!$result) {
             <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
               <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                 <h6 class="dark:text-white">Daftar Rekrutmen</h6>
-                <form method="GET" class="d-flex gap-2 align-items-center mb-0">
-                      <a href="tambahlog.php" class="btn btn-primary mr-2">Tambah Log </a>
+                <form method="GET" class="filter-bar">
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <input type="text"
+                          name="nama"
+                          placeholder="Nama"
+                          class="px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-40 mr-2">
+                    <select name="status"
+                            class="px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-40 mr-2">
+                      <option value="">-- Status --</option>
+                      <option value="DITERIMA">DITERIMA</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="DITOLAK">DITOLAK</option>
+                    </select>
+                    <input type="date"
+                          name="tanggal_mulai"
+                          class="px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mr-2">
 
-                      <input type="text" name="nama" class="form-control form-control-sm mr-2" placeholder="Kode Mesin" style="width: 150px;" value="Nama" />
+                    <input type="date"
+                          name="tanggal_akhir"
+                          class="px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mr-2">
 
-                      <select name="status" class="form-control form-control-sm mr-2" style="width: 150px;">
-                          <option value="">-- Pilih Blok --</option>
-                          <option value="DITERIMA">-- DITERIMA --</option>
-                          <option value="PENDING">-- PENDING --</option>
-                          <option value="DITOLAK">-- DITOLAK --</option>
-
-                      </select>
-
-                      <!-- 🔽 Tambahan Filter NIK Mekanik -->
-                      <input type="text" name="nik_mekanik" class="form-control form-control-sm mr-2" placeholder="NIK Mekanik" style="width: 150px;" value="<?= isset($_GET['nik_mekanik']) ? $_GET['nik_mekanik'] : '' ?>" />
-
-                      <input type="date" name="tanggal_mulai" class="form-control form-control-sm mr-2" style="width: 140px;" value="<?= isset($_GET['tanggal_mulai']) ? $_GET['tanggal_mulai'] : '' ?>" />
-
-                      <input type="date" name="tanggal_akhir" class="form-control form-control-sm mr-2" style="width: 140px;" value="<?= isset($_GET['tanggal_akhir']) ? $_GET['tanggal_akhir'] : '' ?>" />
-
-                      <input type="hidden" name="halaman" value="<?= $_GET['halaman'] ?? 1 ?>">
-
-                      <button type="submit" class="btn-icon edit">Tampilkan</button>
+                    <button type="submit"
+                            class="px-4 py-2 text-sm font-semibold text-white bg-blue-gradient rounded-lg hover:btn-blue-gradient:hover mr-2">
+                      Tampilkan
+                    </button>
+                    
+                    <a href="tbhrekrutmen.php"
+                      class=" ml-auto px-4 py-2 text-sm font-semibold text-white bg-blue-gradient rounded-lg hover:bg-green mr-2">
+                      Tambah Log
+                    </a>
+                  </div>
                   </form>
-
               </div>
               <div class="flex-auto px-0 pt-0 pb-2">
                 
