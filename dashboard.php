@@ -2,8 +2,8 @@
 session_start();
  $page = 'dashboard'; 
 if (!isset($_SESSION['login'])) {
-    header("Location: login.php");
-    exit();
+    header("Location: index.php");
+    exit;
 }
 include('includes/header.php');
 include('includes/sidebar.php');

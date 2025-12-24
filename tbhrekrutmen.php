@@ -3,7 +3,7 @@ session_start();
 
 $current_page = basename($_SERVER['PHP_SELF']);
 if (!isset($_SESSION['login'])) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit();
 }
 include('includes/header.php');
@@ -15,7 +15,7 @@ include('config/dbcon.php');
 <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
       <!-- Navbar -->
       <?php
-      $page_title = "Recruitment";
+      $page_title = "Tambah Recrutment";
       include('includes/topbar.php')
       ?>
 
@@ -26,10 +26,10 @@ include('config/dbcon.php');
           <div class="flex-none w-full max-w-full px-3">
             <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
               <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                <h6 class="dark:text-white">Daftar Rekrutmen</h6>
+                <h6 class="dark:text-white">Tambah Rekrutmen</h6>
                 
               </div>
-              <div class="flex-auto px-0 pt-0 pb-2">
+              <div class="flex-auto px-0  ">
                 
                 <div class="p-0 overflow-x-auto">
                     
@@ -47,102 +47,81 @@ include('config/dbcon.php');
                     endif;
                     ?>
                     <form action="code.php" method="POST" autocomplete="off">
-          <div class="card-body">
-            <div class="form-group">
-              <label for="tanggal">Tanggal</label>
-              <input type="date" name="tanggal" class="form-control" style="max-width: 200px;" required>
-            </div>
-            <div class="form-group">
-              <label for="kode_mesin">Nomor Mesin</label>
-              <input type="text" name="kode_mesin" id="kode_mesin" class="form-control" placeholder="Ketik nomor atau nama mesin" autocomplete="off" required>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="nomor_wo">Nomor WO</label>
-                    <input type="text" name="nomor_wo" class="form-control" placeholder="Masukkan Nomor WO" required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="nik_prod">Amano Prod</label>
-                    <input type="text" name="nik_prod" class="form-control" placeholder="Masukkan NIK Prod" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="nik">Amano MTC</label>
-                    <input type="text" name="nik_mekanik" id="nik_mekanik" class="form-control" placeholder="Masukkan NIK" required onkeyup="tampilkanNama()">
-                </div>
-                <div class="form-group col-md-6">
-                    <label>Nama Mekanik</label>
-                    <input type="text" id="nama" class="form-control" placeholder="Nama akan muncul otomatis" readonly>
-                </div>
-                </div>
-            <div class="form-group">
-              <label for="kriteria">Kriteria Kerusakan</label>
-              <input type="text" name="kriteria" id="kriteria" class="form-control" placeholder="Ketik kriteria kerusakan" required />
-            </div>
-            <div class="form-row">
-              <div class="form-group col-md-6">
-                <label for="kode_part1">Kode Part 1</label>
-                <input type="text" name="kode_part1" class="form-control kode_part" placeholder="Masukkan Kode Part">
-              </div>
-              <div class="form-group col-md-3">
-                <label>Jumlah Part 1</label>
-                <input type="number" id="jumlah1" name="jumlah1" class="form-control big-spinner" placeholder="Jumlah Part" min="0" step="1" value="0">
-              </div>
-            </div>
+                      <div class="flex-auto p-6">
+                        <div class="flex flex-wrap -mx-3">
+                          <div class="px-3">
+                              <div class="mb-4">
+                                <label class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">
+                                  Tanggal
+                                </label>
+                                <input type="date" name="tanggal" placeholder="Nama Lengkap" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                              </div>
+                            </div>
+                            <div class="w-full px-3">
+                              <div class="mb-4">
+                                <label class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">
+                                  Nama
+                                </label>
+                                <input type="text" name="nama" placeholder="Nama Lengkap" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                              </div>
+                            </div>
 
-            <div class="form-row">
-              <div class="form-group col-md-6">
-                <label for="kode_part2">Kode Part 2</label>
-                <input type="text" name="kode_part2" class="form-control kode_part" placeholder="Masukkan Kode Part">
-              </div>
-              <div class="form-group col-md-3">
-                <label>Jumlah Part 2</label>
-                <input type="number" id="jumlah2" name="jumlah2" class="form-control big-spinner" placeholder="Jumlah Part" min="0" step="1" value="0">
-              </div>
-            </div>
+                            <div class="w-full px-3">
+                              <div class="mb-4">
+                                <label class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">
+                                  Posisi
+                                </label>
+                                <input type="text" name="posisi" placeholder="Posisi" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                              </div>
+                            </div>
 
-            <div class="form-row">
-              <div class="form-group col-md-6">
-                <label for="kode_part3">Kode Part 3</label>
-                <input type="text" name="kode_part3" class="form-control kode_part" placeholder="Masukkan Kode Part">
-              </div>
-              <div class="form-group col-md-3">
-                <label>Jumlah Part 3</label>
-                <input type="number" id="jumlah3" name="jumlah3" class="form-control big-spinner" placeholder="Jumlah Part" min="0" step="1" value="0">
-              </div>
-            </div>
+                            <div class="w-full px-3">
+                              <div class="mb-4">
+                                <label class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">
+                                  Psikotes
+                                </label>
+                                <input type="text" name="psikotes" placeholder="Psikotes" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                              </div>
+                            </div>
 
-            <div class="form-group">
-              <label for="Action MTC/UTY">Action MTC/UTY</label>
-              <input type="text" name="tindakan" id="tindakan" class="form-control" placeholder="Ketik Action Mekanik" required />
-            </div>
-            <input type="hidden" name="kode_downtime" id="kode_kodedowntime" />
-            <div class="form-group">
-                <label for="jam_mulai">Jam Mulai</label>
-                <input type="text" name="jam_mulai" id="jam_mulai" class="form-control" placeholder="HH:MM" maxlength="5" required>
-            </div>
-
-            <div class="form-group">
-                <label for="jam_selesai">Jam Selesai</label>
-                <input type="text" name="jam_selesai" id="jam_selesai" class="form-control" placeholder="HH:MM" maxlength="5" required>
-            </div>
-            <div class="form-group">
-              <label for="status">Status</label>
-              <select name="status" class="form-control" required>
-                <option value="">-- Pilih Status --</option>
-                <option value="Major">Major</option>
-                <option value="Minor">Minor</option>
-              </select>
-            </div>
-          </div>
-          <div class="card-footer">
-            <button type="submit" class="btn btn-primary">Simpan</button>
-            <a href="downtime.php" class="btn btn-secondary">Batal</a>
-          </div>
-        </form>
-                        
-                        
+                            <div class="w-full px-3">
+                              <div class="mb-4">
+                                <label class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">
+                                  Interview HR
+                                </label>
+                                <input type="text" name="interview_hr" placeholder="Interview HR" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                              </div>
+                            </div>
+                            <div class="w-full px-3">
+                              <div class="mb-4">
+                                <label class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">
+                                  Interview User
+                                </label>
+                                <input type="text" name="interview_user" placeholder="Interview User" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" />
+                              </div>
+                            </div>
+                            <div class=" px-3">
+                              <div class="mb-4">
+                                <label class="inline-block mb-2 ml-1 font-bold text-xs text-slate-700 dark:text-white/80">
+                                  Status
+                                </label>
+                                <select name="status" class="focus:shadow-primary-outline dark:bg-slate-850 dark:text-white text-sm leading-5.6 ease block w-full appearance-none rounded-lg border border-solid border-gray-300 bg-white bg-clip-padding px-3 py-2 font-normal text-gray-700 outline-none transition-all placeholder:text-gray-500 focus:border-blue-500 focus:outline-none" required>
+                                  <option value="">-- Pilih Status --</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Diterima">Diterima</option>
+                                  <option value="Ditolak">Ditolek</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="w-full px-3">
+                              <div class="mb-">
+                               <button type="submit" name="simpan" class="w-full px-6 py-2  text-sm font-semibold text-white bg-blue-gradient rounded-lg hover:bg-green mr-2">Simpan</button>
+                              </div>
+                            </div>
+                          </div>
+                      </div>
+                      </div>
+                  </form>                                        
                     </div>
                 </div>
               </div>
@@ -160,26 +139,7 @@ include('config/dbcon.php');
     $('.alert').alert('close');
   }, 4000);
 
-$('.btn-delete').on('click', function (e) {
-    e.preventDefault();
 
-    let url = $(this).data('url');
-
-    Swal.fire({
-        title: 'Yakin ingin menghapus?',
-        text: 'Data yang dihapus tidak bisa dikembalikan!',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',      // MERAH
-        cancelButtonColor: '#6c757d',    // ABU
-        confirmButtonText: 'Ya, hapus!',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = url;
-        }
-    });
-});
 </script>
 
 

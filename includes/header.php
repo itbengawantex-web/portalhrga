@@ -1,3 +1,10 @@
+<php
+if (!isset($_SESSION['login'])) {
+    header("Location: index.php");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -26,7 +33,6 @@
     <!-- Main Styling -->
     <link href="./assets/css/argon-dashboard-tailwind.css?v=1.0.1" rel="stylesheet" />
   </head>
-
 
 
   <style>

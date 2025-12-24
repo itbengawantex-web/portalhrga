@@ -1,10 +1,9 @@
 <?php
 session_start();
-
-$current_page = basename($_SERVER['PHP_SELF']);
+$page = 'rekrutmen';
 if (!isset($_SESSION['login'])) {
-    header("Location: login.php");
-    exit();
+    header("Location: index.php");
+    exit;
 }
 include('includes/header.php');
 include('includes/sidebar.php');
@@ -71,7 +70,15 @@ if (!$result) {
 
 ?>
 <style>
+/* Hover baris tabel */
+.table-box .custom-table tbody tr:hover {
+    background-color: #e0e7ff !important; /* biru muda */
+}
 
+/* Supaya transisi halus */
+.table-box .custom-table tbody tr {
+    transition: background-color 0.15s ease;
+}
 </style>
 
 <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
