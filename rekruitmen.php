@@ -69,16 +69,12 @@ if (!$result) {
 }
 
 ?>
+<link rel="stylesheet" href="assets/css/custom.css">
 <style>
-/* Hover baris tabel */
-.table-box .custom-table tbody tr:hover {
-    background-color: #e0e7ff !important; /* biru muda */
-}
 
-/* Supaya transisi halus */
-.table-box .custom-table tbody tr {
-    transition: background-color 0.15s ease;
-}
+
+
+
 </style>
 
 <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
@@ -189,9 +185,22 @@ if (!$result) {
                             ?>
                             </td>
                             <td class="center aksi-btn">
-                                <a href="edit_rekrutmen.php?id=<?= $row['id']; ?>" class="btn-icon edit" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                            <button 
+                                class="btn-icon edit"
+                                onclick="openEditModal(
+                                    '<?= $row['rek_no']; ?>',
+                                    '<?= $row['tanggal']; ?>',
+                                    '<?= $row['nama_rek']; ?>',
+                                    '<?= $row['posisi']; ?>',
+                                    '<?= $row['psikotes']; ?>',
+                                    '<?= $row['interview_hr']; ?>',
+                                    '<?= $row['interview_user']; ?>',
+                                    '<?= $row['status']; ?>'
+                                )"
+                            >
+                                <i class="fas fa-edit"></i>
+                            </button>
+
                                 <button 
                                 class="btn-icon delete btn-delete"
                                 data-url="rekruitmen_hapus.php?rek_no=<?= $row['rek_no']; ?>"
@@ -268,7 +277,10 @@ if (!$result) {
         
         
       </div>
+      
+
     </main>
+
 
 <script>
   setTimeout(() => {
@@ -295,6 +307,93 @@ $('.btn-delete').on('click', function (e) {
         }
     });
 });
+
+function openEditModal(
+    rek_no,
+    tanggal,
+    nama,
+    posisi,
+    psikotes,
+    interview_hr,
+    interview_user,
+    status
+) {
+    Swal.fire({
+        title: 'Edit Rekrutmen',
+        width: 600,
+
+        /* 👉 TARUH html DI SINI */
+        html: `
+        <form id="editForm">
+            <input type="hidden" name="rek_no" value="${rek_no}">
+
+            <div class="swal-grid">
+
+                <label>Tanggal</label>
+                <input type="date" name="tanggal" value="${tanggal}" required>
+
+                <label>Nama</label>
+                <input type="text" name="nama_rek" value="${nama}" required>
+
+                <label>Posisi</label>
+                <input type="text" name="posisi" value="${posisi}" required>
+
+                <label>Psikotes</label>
+                <input type="number" name="psikotes" value="${psikotes}">
+
+                <label>Interview HR</label>
+                <input type="number" name="interview_hr" value="${interview_hr}">
+
+                <label>Interview User</label>
+                <input type="number" name="interview_user" value="${interview_user}">
+
+                <label>Status</label>
+                <select name="status" required>
+                    <option value="PENDING" ${status=='PENDING'?'selected':''}>PENDING</option>
+                    <option value="DITERIMA" ${status=='DITERIMA'?'selected':''}>DITERIMA</option>
+                    <option value="DITOLAK" ${status=='DITOLAK'?'selected':''}>DITOLAK</option>
+                </select>
+
+            </div>
+        </form>
+        `,
+
+        showCancelButton: true,
+        confirmButtonText: 'Simpan',
+        cancelButtonText: 'Batal',
+        focusConfirm: false,
+
+        preConfirm: () => {
+            const form = document.getElementById('editForm');
+            if (!form.checkValidity()) {
+                Swal.showValidationMessage('Lengkapi semua data wajib');
+                return false;
+            }
+            return new FormData(form);
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('rekrutmen_update.php', {
+                method: 'POST',
+                body: result.value
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: res.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire('Gagal', res.message, 'error');
+                }
+            });
+        }
+    });
+}
 </script>
 
 
