@@ -35,7 +35,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
           <li class="mt-0.5 w-full">
             <a class="py-2.7 <?php echo ($current_page == 'rekruitmen.php') ? 'bg-blue-500/13 text-slate-700 font-semibold' : ''; ?> dark:text-white dark:opacity-80 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 transition-colors" href="rekruitmen.php">
               <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center stroke-0 text-center xl:p-2.5">
-                <i class="relative top-0 text-sm leading-normal text-orange-500 ni ni-calendar-grid-58"></i>
+                <i class="relative top-0 text-sm leading-normal text-orange-500 ni ni-single-02"></i>
               </div>
               <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Recruitment</span>
             </a>
@@ -43,11 +43,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 
           <li class="mt-0.5 w-full">
-            <a class=" dark:text-white dark:opacity-80 py-2.7 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap px-4 transition-colors" href="./pages/billing.html">
+          <a class="py-2.7 <?php echo ($current_page == 'pelatihan.php') ? 'bg-blue-500/13 text-slate-700 font-semibold' : ''; ?> dark:text-white dark:opacity-80 text-sm ease-nav-brand my-0 mx-2 flex items-center whitespace-nowrap rounded-lg px-4 transition-colors" href="pelatihan.php">
               <div class="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-center fill-current stroke-0 text-center xl:p-2.5">
-                <i class="relative top-0 text-sm leading-normal text-emerald-500 ni ni-credit-card"></i>
+                <i class="relative top-0 text-sm leading-normal text-emerald-500 ni ni-books"></i>
               </div>
-              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Billing</span>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease">Training</span>
             </a>
           </li>
 

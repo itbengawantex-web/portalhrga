@@ -1,6 +1,6 @@
 <?php
 session_start();
-$page = 'rekrutmen';
+$page = 'Training';
 if (!isset($_SESSION['login'])) {
     header("Location: index.php");
     exit;
@@ -8,6 +8,7 @@ if (!isset($_SESSION['login'])) {
 include('includes/header.php');
 include('includes/sidebar.php');
 include('config/dbcon.php'); 
+
 
 $perPage = 20; // jumlah data per halaman
 $halaman = isset($_GET['halaman']) ? (int)$_GET['halaman'] : 1;
@@ -33,31 +34,33 @@ if ($tanggal_mulai != '' && $tanggal_akhir != '') {
 
 // filter nama (INI FIX)
 if ($nama != '') {
-    $where[] = "nama_rek LIKE '%$nama%'";
+    $where[] = "nama LIKE '%$nama%'";
 }
 
-// filter posisi
-if ($posisi != '') {
-    $where[] = "posisi LIKE '%$posisi%'";
-}
 
-// filter status
-if ($status != '') {
-    $where[] = "status = '$status'";
-}
 
 $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
 $totalQuery = mysqli_query(
     $con,
-    "SELECT COUNT(*) AS total FROM rekrutmen $whereSQL"
+    "SELECT COUNT(*) AS total FROM pelatihan $whereSQL"
 );
 
 $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 $pages = ceil($totalData / $perPage);
 
 
-$query = "SELECT * FROM rekrutmen
+$totalDurasiQuery = mysqli_query(
+    $con,
+    "SELECT SUM(durasi_jam) AS total_durasi FROM pelatihan $whereSQL"
+);
+
+$totalDurasi = mysqli_fetch_assoc($totalDurasiQuery)['total_durasi'] ?? 0;
+
+/* =======================
+   DATA TABEL (PAGINATION)
+======================= */
+$query = "SELECT * FROM pelatihan
           $whereSQL
           ORDER BY tanggal DESC
           LIMIT $perPage OFFSET $offset";
@@ -68,13 +71,14 @@ if (!$result) {
     die("Query Error: " . mysqli_error($con));
 }
 
+
 ?>
 
 
 <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
       <!-- Navbar -->
       <?php
-      $page_title = "Recruitment";
+      $page_title = "Training";
       include('includes/topbar.php')
       ?>
 
@@ -85,20 +89,14 @@ if (!$result) {
           <div class="flex-none w-full max-w-full px-3">
             <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
               <div class="p-6 pb-0 mb-0 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-                <h6 class="dark:text-white">Daftar Rekrutmen</h6>
+                <h6 class="dark:text-white">Daftar Training</h6>
                 <form method="GET" class="filter-bar">
                     <div class="flex flex-wrap items-center gap-3 mb-4">
                     <input type="text"
                           name="nama"
                           placeholder="Nama"
                           class="px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-40 mr-2">
-                    <select name="status"
-                            class="px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-40 mr-2">
-                      <option value="">-- Status --</option>
-                      <option value="DITERIMA">DITERIMA</option>
-                      <option value="PENDING">PENDING</option>
-                      <option value="DITOLAK">DITOLAK</option>
-                    </select>
+                    
                     <input type="date"
                           name="tanggal_mulai"
                           class="px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mr-2">
@@ -112,7 +110,7 @@ if (!$result) {
                       Tampilkan
                     </button>
                     
-                    <a href="tbhrekrutmen.php"
+                    <a href="tbhpelatihan.php"
                       class=" ml-auto px-4 py-2 text-sm font-semibold text-white bg-blue-gradient rounded-lg hover:bg-green mr-2">
                       Tambah Log
                     </a>
@@ -143,11 +141,12 @@ if (!$result) {
                             <th class="center">No</th>
                             <th class="center">Tanggal</th>
                             <th>Nama</th>
-                            <th>Posisi</th>
-                            <th class="center">Psikotes</th>
-                            <th class="center">Interview HR</th>
-                            <th class="center">Interview User</th>
-                            <th class="center">Status</th>
+                            <th>Departemen</th>
+                            <th>Judul Pelatihan</th>
+                            <th>Pemateri</th>
+                            <th class="center">N. Pre-test</th>
+                            <th class="center">N. Post-test</th>
+                            <th class="center">Durasi</th>
                             <th class="center">Aksi</th>
                         </tr>
                             </thead>
@@ -160,44 +159,34 @@ if (!$result) {
                         <tr>
                         <td class="center"><?= $no++; ?></td>
                         <td class="center"><?= date('d-m-Y', strtotime($row['tanggal'])); ?></td>
-                        <td><?= $row['nama_rek']; ?></td>
-                        <td><?= $row['posisi']; ?></td>
-                        <td class="center"><?= $row['psikotes']; ?></td>
-                        <td class="center"><?= $row['interview_hr']; ?></td>
-                        <td class="center"><?= $row['interview_user']; ?></td>
-                        <td class="center">
-                            <?php
-                            $status = strtolower($row['status']);
-
-                            if ($status == 'diterima') {
-                                echo '<span class="status-label status-diterima">Diterima</span>';
-                            } elseif ($status == 'ditolak') {
-                                echo '<span class="status-label status-ditolak">Ditolak</span>';
-                            } else {
-                                echo '<span class="status-label status-pending">Pending</span>';
-                            }
-                            ?>
-                            </td>
+                        <td><?= $row['nama']; ?></td>
+                        <td><?= $row['departemen']; ?></td>
+                        <td><?= $row['judul_pelatihan']; ?></td>
+                        <td><?= $row['pemateri']; ?></td>
+                        <td class="center"><?= $row['pretest']; ?></td>
+                        <td class="center"><?= $row['posttest']; ?></td>
+                        <td class="center"><?= $row['durasi_jam']; ?></td>
                             <td class="center aksi-btn">
                             <button 
-                                class="btn-icon edit"
-                                onclick="openEditModal(
-                                    '<?= $row['rek_no']; ?>',
-                                    '<?= $row['tanggal']; ?>',
-                                    '<?= $row['nama_rek']; ?>',
-                                    '<?= $row['posisi']; ?>',
-                                    '<?= $row['psikotes']; ?>',
-                                    '<?= $row['interview_hr']; ?>',
-                                    '<?= $row['interview_user']; ?>',
-                                    '<?= $row['status']; ?>'
-                                )"
+                            class="btn-icon edit"
+                            onclick="openEditModal(
+                                '<?= $row['id_log']; ?>',
+                                '<?= $row['tanggal']; ?>',
+                                '<?= htmlspecialchars($row['nama']); ?>',
+                                '<?= htmlspecialchars($row['departemen']); ?>',
+                                '<?= htmlspecialchars($row['judul_pelatihan']); ?>',
+                                '<?= htmlspecialchars($row['pemateri']); ?>',
+                                '<?= $row['pretest']; ?>',
+                                '<?= $row['posttest']; ?>',
+                                '<?= $row['durasi_jam']; ?>'
+                            )"
                             >
-                                <i class="fas fa-edit"></i>
+                            <i class="fas fa-edit"></i>
                             </button>
 
                                 <button 
                                 class="btn-icon delete btn-delete"
-                                data-url="rekruitmen_hapus.php?rek_no=<?= $row['rek_no']; ?>"
+                                data-url="pelatihan_hapus.php?id_log=<?= $row['id_log']; ?>"
                                 >
                                 <i class="fas fa-trash-alt"></i>
                                 </button>
@@ -207,6 +196,14 @@ if (!$result) {
                     </tr>
                     <?php } ?>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="7" style="text-align:center;"></th>
+                            <th style="text-align:left; color:#000;">Total Durasi Pelatihan</th>
+                            <th class="center" style="color:#000;"><?= $totalDurasi; ?> Jam</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
                         </table>
                         <?php if ($pages > 1) { ?>
                          <!-- Navigasi pagination -->
@@ -303,23 +300,23 @@ $('.btn-delete').on('click', function (e) {
 });
 
 function openEditModal(
-    rek_no,
+    id_log,
     tanggal,
     nama,
-    posisi,
-    psikotes,
-    interview_hr,
-    interview_user,
-    status
+    departemen,
+    judul,
+    pemateri,
+    pretest,
+    posttest,
+    durasi
 ) {
     Swal.fire({
-        title: 'Edit Rekrutmen',
+        title: 'Edit Training',
         width: 600,
 
-        /* 👉 TARUH html DI SINI */
         html: `
         <form id="editForm">
-            <input type="hidden" name="rek_no" value="${rek_no}">
+            <input type="hidden" name="id_log" value="${id_log}">
 
             <div class="swal-grid">
 
@@ -327,26 +324,25 @@ function openEditModal(
                 <input type="date" name="tanggal" value="${tanggal}" required>
 
                 <label>Nama</label>
-                <input type="text" name="nama_rek" value="${nama}" required>
+                <input type="text" name="nama" value="${nama}" required>
 
-                <label>Posisi</label>
-                <input type="text" name="posisi" value="${posisi}" required>
+                <label>Departemen</label>
+                <input type="text" name="departemen" value="${departemen}" required>
 
-                <label>Psikotes</label>
-                <input type="number" name="psikotes" value="${psikotes}">
+                <label>Judul Pelatihan</label>
+                <input type="text" name="judul_pelatihan" value="${judul}" required>
 
-                <label>Interview HR</label>
-                <input type="number" name="interview_hr" value="${interview_hr}">
+                <label>Pemateri</label>
+                <input type="text" name="pemateri" value="${pemateri}">
 
-                <label>Interview User</label>
-                <input type="number" name="interview_user" value="${interview_user}">
+                <label>N. Pre-test</label>
+                <input type="number" name="pretest" value="${pretest}" required>
 
-                <label>Status</label>
-                <select name="status" required>
-                    <option value="PENDING" ${status=='PENDING'?'selected':''}>PENDING</option>
-                    <option value="DITERIMA" ${status=='DITERIMA'?'selected':''}>DITERIMA</option>
-                    <option value="DITOLAK" ${status=='DITOLAK'?'selected':''}>DITOLAK</option>
-                </select>
+                <label>N. Post-test</label>
+                <input type="number" name="posttest" value="${posttest}" required>
+
+                <label>Durasi (Jam)</label>
+                <input type="number" name="durasi_jam" value="${durasi}" min="0" required>
 
             </div>
         </form>
@@ -367,7 +363,7 @@ function openEditModal(
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('rekrutmen_update.php', {
+            fetch('pelatihan_update.php', {
                 method: 'POST',
                 body: result.value
             })

@@ -7,9 +7,84 @@ if (!isset($_SESSION['login'])) {
 }
 include('includes/header.php');
 include('includes/sidebar.php');
+include('config/dbcon.php'); 
+$tanggal_mulai = $_GET['tanggal_mulai'] ?? '';
+$tanggal_akhir = $_GET['tanggal_akhir'] ?? '';
+
+$whereTanggal = "";
+
+// DEFAULT → BULAN INI
+if ($tanggal_mulai == '' && $tanggal_akhir == '') {
+    $whereTanggal = "
+        tanggal >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        AND tanggal <= LAST_DAY(CURDATE())
+    ";
+}
+// FILTER RANGE
+elseif ($tanggal_mulai != '' && $tanggal_akhir != '') {
+    $whereTanggal = "
+        tanggal BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'
+    ";
+}
+elseif ($tanggal_mulai != '') {
+    $whereTanggal = "
+        tanggal >= '$tanggal_mulai'
+    ";
+}
+elseif ($tanggal_akhir != '') {
+    $whereTanggal = "
+        tanggal <= '$tanggal_akhir'
+    ";
+}
+// =======================
+// CARD 1: TOTAL REKRUTMEN BULAN INI
+// =======================
+$qRecruit = mysqli_query(
+    $con,
+    "SELECT COUNT(*) AS total
+     FROM rekrutmen
+     WHERE $whereTanggal"
+);
+$totalRecruit = mysqli_fetch_assoc($qRecruit)['total'] ?? 0;
 
 
+// =======================
+// CARD 2: TOTAL REKRUTMEN DITERIMA BULAN INI
+// =======================
+$qAccepted = mysqli_query(
+    $con,
+    "SELECT COUNT(*) AS total
+     FROM rekrutmen
+     WHERE status = 'Diterima'
+     AND $whereTanggal"
+);
+$totalAccepted = mysqli_fetch_assoc($qAccepted)['total'] ?? 0;
+
+
+// =======================
+// CARD 3: TOTAL JAM PELATIHAN BULAN INI
+// =======================
+$qTrainingHours = mysqli_query(
+    $con,
+    "SELECT SUM(durasi_jam) AS total
+     FROM pelatihan
+     WHERE $whereTanggal"
+);
+$totalTrainingHours = mysqli_fetch_assoc($qTrainingHours)['total'] ?? 0;
+
+
+// =======================
+// CARD 4: TOTAL ORANG IKUT PELATIHAN BULAN INI
+// =======================
+$qParticipants = mysqli_query(
+    $con,
+    "SELECT COUNT(DISTINCT nama) AS total
+     FROM pelatihan
+     WHERE $whereTanggal"
+);
+$totalParticipants = mysqli_fetch_assoc($qParticipants)['total'] ?? 0;
 ?>
+
    
 
     <main class="relative h-full max-h-screen transition-all duration-200 ease-in-out xl:ml-68 rounded-xl">
@@ -18,29 +93,57 @@ include('includes/sidebar.php');
       $page_title = "Dashboard";
       include('includes/topbar.php')
       ?>
+<!-- <form method="GET" class="filter-bar">
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <input type="date"
+                          name="tanggal_mulai"
+                          class=" text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mr-2">
 
+                    <input type="date"
+                          name="tanggal_akhir"
+                          class=" text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mr-2">
+
+                    <button type="submit"
+                            class=" text-sm font-semibold text-white bg-red rounded-lg hover:btn-blue-gradient:hover mr-2">
+                      Tampilkan
+                    </button>
+                    </a>
+                  </div>
+                  </form> -->
       <!-- cards -->
       <div class="w-full px-6 py-6 mx-auto">
         <!-- row 1 -->
+        
         <div class="flex flex-wrap -mx-3">
           <!-- card1 -->
+          
           <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
             <div class="relative flex flex-col min-w-0 break-words bg-white shadow-xl dark:bg-slate-850 dark:shadow-dark-xl rounded-2xl bg-clip-border">
               <div class="flex-auto p-4">
                 <div class="flex flex-row -mx-3">
+                
                   <div class="flex-none w-2/3 max-w-full px-3">
                     <div>
-                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Today's Money</p>
-                      <h5 class="mb-2 font-bold dark:text-white">$53,000</h5>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Recruitment This Month</p>
+                      <h5 class="mb-2 font-bold dark:text-white"><?=$totalRecruit; ?></h5>
                       <p class="mb-0 dark:text-white dark:opacity-60">
-                        <span class="text-sm font-bold leading-normal text-emerald-500">+55%</span>
-                        since yesterday
+                        <span class="text-sm font-bold leading-normal text-red-600"><?php
+                            if ($tanggal_mulai || $tanggal_akhir) {
+                                echo "Periode: " .
+                                    ($tanggal_mulai ? date('d M Y', strtotime($tanggal_mulai)) : '-') .
+                                    " s/d " .
+                                    ($tanggal_akhir ? date('d M Y', strtotime($tanggal_akhir)) : '-');
+                            } else {
+                                echo "Periode: Bulan Ini";
+                            }
+                            ?></span>
+                        
                       </p>
                     </div>
                   </div>
                   <div class="px-3 text-right basis-1/3">
-                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-blue-500 to-violet-500">
-                      <i class="ni leading-none ni-money-coins text-lg relative top-3.5 text-white"></i>
+                  <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-orange-500 to-yellow-500">
+                      <i class="ni leading-none ni ni-single-02 text-lg relative top-3.5 text-white"></i>
                     </div>
                   </div>
                 </div>
@@ -55,17 +158,27 @@ include('includes/sidebar.php');
                 <div class="flex flex-row -mx-3">
                   <div class="flex-none w-2/3 max-w-full px-3">
                     <div>
-                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Today's Users</p>
-                      <h5 class="mb-2 font-bold dark:text-white">2,300</h5>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Accepted Candidates</p>
+                      <h5 class="mb-2 font-bold dark:text-white"><?= $totalAccepted; ?></h5>
                       <p class="mb-0 dark:text-white dark:opacity-60">
-                        <span class="text-sm font-bold leading-normal text-emerald-500">+3%</span>
-                        since last week
+                        <span class="text-sm font-bold leading-normal text-red-600"><?php
+                            if ($tanggal_mulai || $tanggal_akhir) {
+                                echo "Periode: " .
+                                    ($tanggal_mulai ? date('d M Y', strtotime($tanggal_mulai)) : '-') .
+                                    " s/d " .
+                                    ($tanggal_akhir ? date('d M Y', strtotime($tanggal_akhir)) : '-');
+                            } else {
+                                echo "Periode: Bulan Ini";
+                            }
+                            ?></span>
+                        
                       </p>
                     </div>
                   </div>
                   <div class="px-3 text-right basis-1/3">
-                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-red-600 to-orange-600">
-                      <i class="ni leading-none ni-world text-lg relative top-3.5 text-white"></i>
+                    
+                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
+                      <i class="ni leading-none ni ni-check-bold text-lg relative top-3.5 text-white"></i>
                     </div>
                   </div>
                 </div>
@@ -80,17 +193,27 @@ include('includes/sidebar.php');
                 <div class="flex flex-row -mx-3">
                   <div class="flex-none w-2/3 max-w-full px-3">
                     <div>
-                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">New Clients</p>
-                      <h5 class="mb-2 font-bold dark:text-white">+3,462</h5>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Training Participants</p>
+                      <h5 class="mb-2 font-bold dark:text-white"><?= $totalParticipants; ?> Orang</h5>
                       <p class="mb-0 dark:text-white dark:opacity-60">
-                        <span class="text-sm font-bold leading-normal text-red-600">-2%</span>
-                        since last quarter
+                        <span class="text-sm font-bold leading-normal text-red-600"><?php
+                            if ($tanggal_mulai || $tanggal_akhir) {
+                                echo "Periode: " .
+                                    ($tanggal_mulai ? date('d M Y', strtotime($tanggal_mulai)) : '-') .
+                                    " s/d " .
+                                    ($tanggal_akhir ? date('d M Y', strtotime($tanggal_akhir)) : '-');
+                            } else {
+                                echo "Periode: Bulan Ini";
+                            }
+                            ?></span>
+                        
                       </p>
                     </div>
                   </div>
                   <div class="px-3 text-right basis-1/3">
-                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-emerald-500 to-teal-400">
-                      <i class="ni leading-none ni-paper-diploma text-lg relative top-3.5 text-white"></i>
+                    
+                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-blue-500 to-violet-500">
+                      <i class="ni leading-none ni ni-single-02 text-lg relative top-3.5 text-white"></i>
                     </div>
                   </div>
                 </div>
@@ -105,17 +228,27 @@ include('includes/sidebar.php');
                 <div class="flex flex-row -mx-3">
                   <div class="flex-none w-2/3 max-w-full px-3">
                     <div>
-                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Sales</p>
-                      <h5 class="mb-2 font-bold dark:text-white">$103,430</h5>
+                      <p class="mb-0 font-sans text-sm font-semibold leading-normal uppercase dark:text-white dark:opacity-60">Training Hours</p>
+                      <h5 class="mb-2 font-bold dark:text-white"><?= $totalTrainingHours; ?> Jam</h5>
                       <p class="mb-0 dark:text-white dark:opacity-60">
-                        <span class="text-sm font-bold leading-normal text-emerald-500">+5%</span>
-                        than last month
+                        <span class="text-sm font-bold leading-normal text-red-600"><?php
+                            if ($tanggal_mulai || $tanggal_akhir) {
+                                echo "Periode: " .
+                                    ($tanggal_mulai ? date('d M Y', strtotime($tanggal_mulai)) : '-') .
+                                    " s/d " .
+                                    ($tanggal_akhir ? date('d M Y', strtotime($tanggal_akhir)) : '-');
+                            } else {
+                                echo "Periode: Bulan Ini";
+                            }
+                            ?></span>
+                        
                       </p>
                     </div>
                   </div>
                   <div class="px-3 text-right basis-1/3">
-                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-orange-500 to-yellow-500">
-                      <i class="ni leading-none ni-cart text-lg relative top-3.5 text-white"></i>
+                    
+                    <div class="inline-block w-12 h-12 text-center rounded-circle bg-gradient-to-tl from-red-600 to-orange-600">
+                      <i class="ni leading-none ni ni-time-alarm text-lg relative top-3.5 text-white"></i>
                     </div>
                   </div>
                 </div>
@@ -125,7 +258,7 @@ include('includes/sidebar.php');
         </div>
 
         <!-- cards row 2 -->
-        <div class="flex flex-wrap mt-6 -mx-3">
+        <!-- <div class="flex flex-wrap mt-6 -mx-3">
           <div class="w-full max-w-full px-3 mt-0 lg:w-7/12 lg:flex-none">
             <div class="border-black/12.5 dark:bg-slate-850 dark:shadow-dark-xl shadow-xl relative z-20 flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
               <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid p-6 pt-4 pb-0">
@@ -141,9 +274,9 @@ include('includes/sidebar.php');
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
           
-          <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
+          <!-- <div class="w-full max-w-full px-3 mt-0 lg:w-5/12 lg:flex-none">
             <div class="border-black/12.5 shadow-xl dark:bg-slate-850 dark:shadow-dark-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
               <div class="p-4 pb-0 rounded-t-4">
                 <h6 class="mb-0 dark:text-white">Categories</h6>
@@ -209,7 +342,7 @@ include('includes/sidebar.php');
                 </ul>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
 
         
