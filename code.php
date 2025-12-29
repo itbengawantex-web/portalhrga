@@ -50,22 +50,28 @@ if (isset($_POST['simpan_training'])) {
 
     $tanggal         = $_POST['tanggal'];
     $nama            = $_POST['nama'];
+    $departemen            = $_POST['departemen'];
     $judul_pelatihan = $_POST['judul_Training'];
     $pemateri        = $_POST['Pemateri'];
+    $pretest      = $_POST['pretest'];
+    $posttest      = $_POST['posttest'];
     $durasi_jam      = $_POST['durasi_jam'];
 
     $query = "INSERT INTO pelatihan 
-        (tanggal, nama, judul_pelatihan, pemateri, durasi_jam)
-        VALUES (?, ?, ?, ?, ?)";
+        (tanggal, nama, departemen, judul_pelatihan, pemateri, pretest, posttest, durasi_jam)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = mysqli_prepare($con, $query);
     mysqli_stmt_bind_param(
         $stmt,
-        "ssssi",
+        "sssssiii",
         $tanggal,
         $nama,
+        $departemen,
         $judul_pelatihan,
         $pemateri,
+        $pretest,
+        $posttest,
         $durasi_jam
     );
 

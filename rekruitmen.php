@@ -8,65 +8,80 @@ if (!isset($_SESSION['login'])) {
 include('includes/header.php');
 include('includes/sidebar.php');
 include('config/dbcon.php'); 
+/* =======================
+   PAGINATION
+======================= */
+$perPage = 20;
+$halaman = isset($_GET['halaman']) ? max((int)$_GET['halaman'], 1) : 1;
+$offset  = ($halaman - 1) * $perPage;
 
-$perPage = 20; // jumlah data per halaman
-$halaman = isset($_GET['halaman']) ? (int)$_GET['halaman'] : 1;
-$halaman = ($halaman < 1) ? 1 : $halaman;
+/* =======================
+   FILTER INPUT (AMAN)
+======================= */
+$nama          = mysqli_real_escape_string($con, $_GET['nama'] ?? '');
+$posisi        = mysqli_real_escape_string($con, $_GET['posisi'] ?? '');
+$status        = mysqli_real_escape_string($con, $_GET['status'] ?? '');
+$tanggal_mulai = mysqli_real_escape_string($con, $_GET['tanggal_mulai'] ?? '');
+$tanggal_akhir = mysqli_real_escape_string($con, $_GET['tanggal_akhir'] ?? '');
 
-$offset = ($halaman - 1) * $perPage;
-$nama          = $_GET['nama'] ?? '';
-$tanggal_mulai = $_GET['tanggal_mulai'] ?? '';
-$tanggal_akhir = $_GET['tanggal_akhir'] ?? '';
-$posisi        = $_GET['posisi'] ?? '';
-$status        = $_GET['status'] ?? '';
+$filterParams = http_build_query([
+    'nama' => $_GET['nama'] ?? '',
+    'posisi' => $_GET['posisi'] ?? '',
+    'status' => $_GET['status'] ?? '',
+    'tanggal_mulai' => $_GET['tanggal_mulai'] ?? '',
+    'tanggal_akhir' => $_GET['tanggal_akhir'] ?? ''
+]);
 
-$where = [];
-
-// filter tanggal
-if ($tanggal_mulai != '' && $tanggal_akhir != '') {
-    $where[] = "tanggal BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'";
-} elseif ($tanggal_mulai != '') {
-    $where[] = "tanggal >= '$tanggal_mulai'";
-} elseif ($tanggal_akhir != '') {
-    $where[] = "tanggal <= '$tanggal_akhir'";
+/* =======================
+   DEFAULT BULAN BERJALAN
+======================= */
+if (empty($tanggal_mulai) && empty($tanggal_akhir)) {
+    $tanggal_mulai = date('Y-m-01'); // hari pertama bulan ini
+    $tanggal_akhir = date('Y-m-t');  // hari terakhir bulan ini
 }
 
-// filter nama (INI FIX)
-if ($nama != '') {
+/* =======================
+   BUILD WHERE CLAUSE
+======================= */
+$where = [];
+$where[] = "tanggal BETWEEN '$tanggal_mulai' AND '$tanggal_akhir'";
+
+if (!empty($nama)) {
     $where[] = "nama_rek LIKE '%$nama%'";
 }
-
-// filter posisi
-if ($posisi != '') {
+if (!empty($posisi)) {
     $where[] = "posisi LIKE '%$posisi%'";
 }
-
-// filter status
-if ($status != '') {
+if (!empty($status)) {
     $where[] = "status = '$status'";
 }
 
-$whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+$whereSQL = 'WHERE ' . implode(' AND ', $where);
 
-$totalQuery = mysqli_query(
-    $con,
-    "SELECT COUNT(*) AS total FROM rekrutmen $whereSQL"
-);
-
+/* =======================
+   HITUNG TOTAL DATA & PAGINATION
+======================= */
+$totalQuery = mysqli_query($con, "SELECT COUNT(*) AS total FROM rekrutmen $whereSQL");
 $totalData = mysqli_fetch_assoc($totalQuery)['total'];
 $pages = ceil($totalData / $perPage);
 
-
-$query = "SELECT * FROM rekrutmen
-          $whereSQL
-          ORDER BY tanggal DESC
-          LIMIT $perPage OFFSET $offset";
+/* =======================
+   QUERY DATA UNTUK TABEL
+======================= */
+$query = "
+    SELECT rek_no, tanggal, nama_rek, posisi, psikotes, interview_hr, interview_user, status
+    FROM rekrutmen
+    $whereSQL
+    ORDER BY tanggal DESC
+    LIMIT $perPage OFFSET $offset
+";
 
 $result = mysqli_query($con, $query);
 
 if (!$result) {
-    die("Query Error: " . mysqli_error($con));
+    die('Query Error: ' . mysqli_error($con));
 }
+?>
 
 ?>
 
@@ -224,23 +239,22 @@ if (!$result) {
 
                                 // Tombol Prev
                                 if ($halaman > 1) {
-                                    echo '<li class="page-item"><a class="page-link" href="?halaman=' . ($halaman - 1) . '">&laquo;</a></li>';
+                                    echo '<li class="page-item"><a class="page-link" href="?halaman=' . ($halaman - 1) . '&' . $filterParams . '">&laquo;</a></li>';
                                 } else {
                                     echo '<li class="page-item disabled"><span class="page-link">&laquo;</span></li>';
-                                }
-
-                                // Tampilkan halaman pertama + ellipsis
-                                if ($start > 1) {
-                                    echo '<li class="page-item"><a class="page-link" href="?halaman=1">1</a></li>';
-                                    if ($start > 2) {
-                                        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
-                                    }
                                 }
 
                                 // Halaman tengah
                                 for ($i = $start; $i <= $end; $i++) {
                                     $active = ($i == $halaman) ? 'active' : '';
-                                    echo '<li class="page-item ' . $active . '"><a class="page-link" href="?halaman=' . $i . '">' . $i . '</a></li>';
+                                    echo '<li class="page-item ' . $active . '"><a class="page-link" href="?halaman=' . $i . '&' . $filterParams . '">' . $i . '</a></li>';
+                                }
+
+                                // Tombol Next
+                                if ($halaman < $pages) {
+                                    echo '<li class="page-item"><a class="page-link" href="?halaman=' . ($halaman + 1) . '&' . $filterParams . '">&raquo;</a></li>';
+                                } else {
+                                    echo '<li class="page-item disabled"><span class="page-link">&raquo;</span></li>';
                                 }
 
                                 // Tampilkan halaman terakhir + ellipsis
