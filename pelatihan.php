@@ -389,7 +389,10 @@ function openEditModal(
                         text: res.message,
                         timer: 1500,
                         showConfirmButton: false
-                    }).then(() => location.reload());
+                    }).then(() => {
+                                const params = new URLSearchParams(window.location.search);
+                                window.location.href = 'training.php?' + params.toString();
+                            });
                 } else {
                     Swal.fire('Gagal', res.message, 'error');
                 }

@@ -347,13 +347,13 @@ function openEditModal(
                 <input type="text" name="posisi" value="${posisi}" required>
 
                 <label>Psikotes</label>
-                <input type="number" name="psikotes" value="${psikotes}">
+                <input type="text" name="psikotes" value="${psikotes}">
 
                 <label>Interview HR</label>
-                <input type="number" name="interview_hr" value="${interview_hr}">
+                <input type="text" name="interview_hr" value="${interview_hr}">
 
                 <label>Interview User</label>
-                <input type="number" name="interview_user" value="${interview_user}">
+                <input type="text" name="interview_user" value="${interview_user}">
 
                 <label>Status</label>
                 <select name="status" required>
@@ -394,7 +394,9 @@ function openEditModal(
                         text: res.message,
                         timer: 1500,
                         showConfirmButton: false
-                    }).then(() => location.reload());
+                    }).then(() => {
+                            window.location.href = window.location.pathname + window.location.search;
+                        });
                 } else {
                     Swal.fire('Gagal', res.message, 'error');
                 }
